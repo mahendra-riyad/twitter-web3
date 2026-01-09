@@ -6,27 +6,7 @@ import { useContracts } from "@/hooks/useContracts";
 import { useState, useEffect } from "react";
 
 export const Navbar = () => {
-  const { account, connectWallet, disconnectWallet, isLoading } = useWeb3();
-  const { profileContract } = useContracts();
-  const [displayName, setDisplayName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (account && profileContract) {
-        try {
-          const profile = await profileContract.getProfile(account);
-          if (profile.displayName) {
-            setDisplayName(profile.displayName);
-          }
-        } catch (err) {
-          console.error("Error fetching profile:", err);
-        }
-      } else {
-        setDisplayName(null);
-      }
-    };
-    fetchProfile();
-  }, [account, profileContract]);
+  const { account, connectWallet, disconnectWallet, profile, isLoading } = useWeb3();
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -50,7 +30,7 @@ export const Navbar = () => {
           
           {account ? (
             <div className="flex items-center gap-4">
-              {!displayName && (
+              {!profile?.displayName && (
                 <Link 
                   href="/create-profile" 
                   className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded-full border border-yellow-500/30 animate-pulse"
@@ -60,7 +40,7 @@ export const Navbar = () => {
               )}
               <div className="flex flex-col items-end border-r border-gray-800 pr-4">
                 <span className="text-sm font-medium text-white">
-                  {displayName || truncateAddress(account)}
+                  {profile?.displayName || truncateAddress(account)}
                 </span>
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest">Connected</span>
               </div>

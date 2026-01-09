@@ -22,7 +22,8 @@ export const TweetCard = ({ tweet, onActionComplete }: { tweet: Tweet; onActionC
     if (!twitterContract || !account) return;
     setIsLiking(true);
     try {
-      const tx = await twitterContract.likeTweet(tweet.id);
+      // Updated: User's contract requires likeTweet(address author, uint256 id)
+      const tx = await twitterContract.likeTweet(tweet.author, tweet.id);
       await tx.wait();
       onActionComplete?.();
     } catch (err: any) {

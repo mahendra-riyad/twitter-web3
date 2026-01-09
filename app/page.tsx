@@ -23,10 +23,16 @@ export default function Home() {
   const fetchTweets = useCallback(async () => {
     if (!twitterContract) return;
     try {
-      const allTweets = await twitterContract.getAllTweets();
-      // Sort tweets by timestamp descending (newest first)
-      const sortedTweets = [...allTweets].sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
-      setTweets(sortedTweets);
+      // Updated: User's contract requires an address for getAllTweets(address _owner).
+      // Since there is no global feed, we'll try to fetch the current user's tweets if connected.
+      // If not connected, we cannot show a feed without a target address.
+      if (account) {
+        const userTweets = await twitterContract.getAllTweets(account);
+        const sortedTweets = [...userTweets].sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+        setTweets(sortedTweets);
+      } else {
+        setTweets([]);
+      }
     } catch (err) {
       console.error("Failed to fetch tweets:", err);
     } finally {

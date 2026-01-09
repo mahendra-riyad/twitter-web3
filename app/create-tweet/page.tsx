@@ -7,31 +7,11 @@ import { useRouter } from "next/navigation";
 import { Loading } from "@/components/Loading";
 
 export default function CreateTweet() {
-  const { twitterContract, profileContract } = useContracts();
-  const { account } = useWeb3();
+  const { twitterContract } = useContracts();
+  const { account, profile } = useWeb3();
   const router = useRouter();
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
-
-  useEffect(() => {
-    const checkRegistration = async () => {
-      if (account && profileContract) {
-        try {
-          const profile = await profileContract.getProfile(account);
-          setIsRegistered(!!profile.displayName);
-        } catch (err) {
-          console.error("Registration check failed:", err);
-        } finally {
-          setIsVerifying(false);
-        }
-      } else if (!account) {
-        setIsVerifying(false);
-      }
-    };
-    checkRegistration();
-  }, [account, profileContract]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +30,6 @@ export default function CreateTweet() {
     }
   };
 
-  if (isVerifying) return <Loading />;
-
   if (!account) {
     return (
       <div className="text-center py-20">
@@ -60,7 +38,7 @@ export default function CreateTweet() {
     );
   }
 
-  if (!isRegistered) {
+  if (!profile?.displayName) {
     return (
       <div className="max-w-md mx-auto text-center py-20 bg-yellow-500/10 border border-yellow-500/20 rounded-3xl p-8">
         <h2 className="text-2xl font-bold text-yellow-500 mb-4">Identity Required</h2>

@@ -8,7 +8,7 @@ import { Loading } from "@/components/Loading";
 
 export default function CreateProfile() {
   const { profileContract } = useContracts();
-  const { account } = useWeb3();
+  const { account, refreshProfile } = useWeb3();
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -22,6 +22,7 @@ export default function CreateProfile() {
     try {
       const tx = await profileContract.setProfile(displayName, bio);
       await tx.wait();
+      await refreshProfile();
       router.push("/");
     } catch (err: any) {
       console.error("Failed to set profile:", err);

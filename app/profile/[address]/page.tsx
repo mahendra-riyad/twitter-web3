@@ -30,18 +30,19 @@ export default function UserProfile({ params }: { params: Promise<{ address: str
   const fetchData = useCallback(async () => {
     if (!twitterContract || !profileContract) return;
     try {
-      const [allTweets, userProfile, likes] = await Promise.all([
-        twitterContract.getAllTweets(),
+      // Updated: Calling user-specific tweets and stats
+      const [userTweets, userProfile, likes] = await Promise.all([
+        twitterContract.getAllTweets(resolvedParams.address),
         profileContract.getProfile(resolvedParams.address),
         twitterContract.getTotalLikes(resolvedParams.address),
       ]);
-
-      const userTweets = allTweets.filter(
-        (t: Tweet) => t.author.toLowerCase() === resolvedParams.address.toLowerCase()
-      );
       
       setTweets([...userTweets].sort((a, b) => Number(b.timestamp) - Number(a.timestamp)));
-      setProfile(userProfile.displayName ? userProfile : null);
+      
+      const displayName = userProfile.displayName || userProfile[0];
+      const bio = userProfile.bio || userProfile[1];
+      
+      setProfile(displayName ? { displayName, bio } : null);
       setTotalLikes(likes);
     } catch (err) {
       console.error("Failed to fetch user data:", err);
