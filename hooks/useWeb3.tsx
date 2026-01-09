@@ -1,0 +1,134 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { ethers } from "ethers";
+
+const SEPOLIA_CHAIN_ID = "0xaa36a7"; // 11155111 in hex
+
+interface Web3ContextType {
+  account: string | null;
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.Signer | null;
+  connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
+  isLoading: boolean;
+  error: string | null;
+}
+
+const Web3Context = createContext<Web3ContextType | undefined>(undefined);
+
+export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [account, setAccount] = useState<string | null>(null);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const connectWallet = useCallback(async () => {
+    if (typeof window.ethereum === "undefined") {
+      setError("MetaMask is not installed. Please install it to use this dApp.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const browserProvider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await browserProvider.send("eth_requestAccounts", []);
+      const browserSigner = await browserProvider.getSigner();
+
+      setAccount(accounts[0]);
+      setProvider(browserProvider);
+      setSigner(browserSigner);
+
+      // Check network and switch to Sepolia if necessary
+      const network = await browserProvider.getNetwork();
+      if (network.chainId !== BigInt(11155111)) {
+        try {
+          await window.ethereum?.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: SEPOLIA_CHAIN_ID }],
+          });
+        } catch (switchError: any) {
+          // This error code indicates that the chain has not been added to MetaMask.
+          if (switchError.code === 4902) {
+            await window.ethereum?.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: SEPOLIA_CHAIN_ID,
+                  chainName: "Sepolia Test Network",
+                  nativeCurrency: { name: "Sepolia Ether", symbol: "SEP", decimals: 18 },
+                  rpcUrls: ["https://rpc.sepolia.org"],
+                  blockExplorerUrls: ["https://sepolia.etherscan.io"],
+                },
+              ],
+            });
+          } else {
+            throw switchError;
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to connect wallet");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const disconnectWallet = useCallback(() => {
+    setAccount(null);
+    setSigner(null);
+    setProvider(null);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window.ethereum !== "undefined") {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        } else {
+          setAccount(null);
+          setSigner(null);
+        }
+      };
+
+      const handleChainChanged = () => {
+        window.location.reload();
+      };
+
+      window.ethereum?.on("accountsChanged", handleAccountsChanged);
+      window.ethereum?.on("chainChanged", handleChainChanged);
+
+      return () => {
+        window.ethereum?.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum?.removeListener("chainChanged", handleChainChanged);
+      };
+    }
+  }, []);
+
+  return (
+    <Web3Context.Provider
+      value={{
+        account,
+        provider,
+        signer,
+        connectWallet,
+        disconnectWallet,
+        isLoading,
+        error,
+      }}
+    >
+      {children}
+    </Web3Context.Provider>
+  );
+};
+
+export const useWeb3 = () => {
+  const context = useContext(Web3Context);
+  if (context === undefined) {
+    throw new Error("useWeb3 must be used within a Web3Provider");
+  }
+  return context;
+};

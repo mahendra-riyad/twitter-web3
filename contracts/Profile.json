@@ -1,0 +1,24 @@
+[
+  {
+    "inputs": [
+      { "internalType": "string", "name": "displayName", "type": "string" },
+      { "internalType": "string", "name": "bio", "type": "string" }
+    ],
+    "name": "setProfile",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "user", "type": "address" }
+    ],
+    "name": "getProfile",
+    "outputs": [
+      { "internalType": "string", "name": "displayName", "type": "string" },
+      { "internalType": "string", "name": "bio", "type": "string" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
