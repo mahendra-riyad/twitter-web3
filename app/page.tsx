@@ -21,7 +21,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTweets = useCallback(async () => {
-    if (!twitterContract) return;
+    if (!twitterContract) {
+      setIsLoading(false);
+      return;
+    }
     try {
       // Updated: User's contract requires an address for getAllTweets(address _owner).
       // Since there is no global feed, we'll try to fetch the current user's tweets if connected.

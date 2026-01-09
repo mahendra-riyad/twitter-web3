@@ -28,7 +28,10 @@ export default function UserProfile({ params }: { params: Promise<{ address: str
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!twitterContract || !profileContract) return;
+    if (!twitterContract || !profileContract) {
+      setIsLoading(false);
+      return;
+    }
     try {
       // Updated: Calling user-specific tweets and stats
       const [userTweets, userProfile, likes] = await Promise.all([
