@@ -76,6 +76,9 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await fetchProfileData(accounts[0], browserProvider);
 
+      // Clear disconnection flag on manual connect
+      localStorage.removeItem("twitter3_isDisconnected");
+
       // Check network and switch to Sepolia if necessary
       const network = await browserProvider.getNetwork();
       if (network.chainId !== BigInt(11155111)) {
@@ -116,10 +119,16 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccount(null);
     setSigner(null);
     setProvider(null);
+    localStorage.setItem("twitter3_isDisconnected", "true");
   }, []);
 
   useEffect(() => {
     const init = async () => {
+      // Respect manual disconnect flag
+      if (localStorage.getItem("twitter3_isDisconnected") === "true") {
+        return;
+      }
+
       if (typeof window.ethereum !== "undefined") {
         try {
           // Check if already connected
