@@ -7,10 +7,28 @@ import { useState, useEffect } from "react";
 
 export const Navbar = () => {
   const { account, connectWallet, disconnectWallet, profile, isLoading } = useWeb3();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
+
+  if (!hasMounted) {
+    return (
+      <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            Twitter3
+          </div>
+          <div className="h-10 w-32 bg-gray-800 rounded-full animate-pulse"></div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">

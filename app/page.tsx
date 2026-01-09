@@ -38,7 +38,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [twitterContract]);
+  }, [twitterContract, account]);
 
   useEffect(() => {
     fetchTweets();
